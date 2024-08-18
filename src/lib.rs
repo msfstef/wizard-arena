@@ -5,15 +5,13 @@ use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::{Window, WindowId};
 
 struct App<'a> {
-    state: State<'a>
+    state: State<'a>,
 }
-
 
 impl ApplicationHandler for App<'_> {
     fn resumed(&mut self, _event_loop: &ActiveEventLoop) {
         // no-op
     }
-
 
     fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
         if self.state.window().id() != id {
@@ -47,7 +45,7 @@ impl ApplicationHandler for App<'_> {
                     // Reconfigure the surface if lost
                     Err(wgpu::SurfaceError::Lost) => self.state.resize(self.state.size),
                     // The system is out of memory, we should probably quit
-                    Err(wgpu::SurfaceError::OutOfMemory) => event_loop.exit(), 
+                    Err(wgpu::SurfaceError::OutOfMemory) => event_loop.exit(),
                     // All other errors (Outdated, Timeout) should be resolved by the next frame
                     Err(e) => eprintln!("{:?}", e),
                 }
@@ -56,7 +54,6 @@ impl ApplicationHandler for App<'_> {
         }
     }
 }
-
 
 struct State<'a> {
     surface: wgpu::Surface<'a>,
@@ -169,10 +166,14 @@ impl<'a> State<'a> {
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let output = self.surface.get_current_texture()?;
-        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
-        });
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
         {
             let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("Render Pass"),
@@ -214,7 +215,7 @@ pub async fn run() {
     event_loop.set_control_flow(ControlFlow::Poll);
 
     let mut state = State::new(&window).await;
-    let mut app = App{state};
+    let mut app = App { state };
 
     let _ = event_loop.run_app(&mut app);
 }
