@@ -1,7 +1,9 @@
 mod models;
+mod player_controller;
 mod scenes;
 use macroquad::prelude::*;
 use models::{Player, SceneType, State};
+use player_controller::KeyMappings;
 use scenes::*;
 
 fn window_conf() -> Conf {
@@ -20,12 +22,15 @@ async fn main() {
             Player {
                 size: 1.0,
                 position: Vec2::new(0.1, 0.1),
+                orientation: Default::default(),
             },
             Player {
                 size: 1.0,
                 position: Vec2::new(0.9, 0.9),
+                orientation: Default::default(),
             },
         ],
+        mappings: KeyMappings::default(),
     };
     let mut current_scene_type: SceneType = state.scene_type.clone();
     let mut current_scene: Box<dyn GameScene> = Box::new(scenes::main_menu::MainMenu {});

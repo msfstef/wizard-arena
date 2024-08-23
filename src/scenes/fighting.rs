@@ -1,4 +1,5 @@
 use crate::models::*;
+use crate::player_controller::*;
 use crate::scenes::GameScene;
 use macroquad::color::*;
 use macroquad::prelude::*;
@@ -25,13 +26,18 @@ impl GameScene for Fighting {
 
         for player in state.players.iter() {
             let size = BASE_PLAYER_SIZE * player.size;
-            draw_rectangle(
-                player.position.x * screen_width() - size / 2.0,
-                player.position.y * screen_height() - size / 2.0,
+
+            draw_rectangle_ex(
+                player.position.x * screen_width(),
+                player.position.y * screen_height(),
                 size,
                 size,
-                BLACK,
-            )
+                DrawRectangleParams {
+                    color: BLACK,
+                    rotation: player.orientation.to_angle(),
+                    offset: vec2(0.5, 0.5),
+                },
+            );
         }
     }
 
@@ -41,15 +47,15 @@ impl GameScene for Fighting {
             return;
         }
         let player1: &mut Player = state.players.get_mut(1).expect("Missing Player 1");
-        if is_key_down(KeyCode::W) {
-            player1.position += vec2(0.0, -0.01);
-        } else if is_key_down(KeyCode::S) {
-            player1.position += vec2(0.0, 0.01);
+
+        let direction = get_movement_direction(&state.mappings);
+        if direction.is_some() {
+            player1.position += direction.unwrap() * 0.01;
         }
-        if is_key_down(KeyCode::D) {
-            player1.position += vec2(0.01, 0.0);
-        } else if is_key_down(KeyCode::A) {
-            player1.position += vec2(-0.01, 0.0);
+
+        let orientation = get_orientation(&state.mappings, &player1.position);
+        if orientation.is_some() {
+            player1.orientation = orientation.unwrap()
         }
     }
 
