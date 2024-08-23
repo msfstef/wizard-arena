@@ -7,8 +7,8 @@ use macroquad::ui::root_ui;
 pub struct MainMenu {}
 
 impl GameScene for MainMenu {
-    fn render(&self, _state: &State) {
-        clear_background(WHITE);
+    fn update(&self, _state: &mut State) -> () {
+        // no-op
     }
 
     fn handle_input(&self, state: &mut State) -> () {
@@ -16,6 +16,10 @@ impl GameScene for MainMenu {
             state.scene_type = SceneType::Quitting;
             return;
         }
+    }
+
+    fn render(&self, _state: &State) {
+        clear_background(WHITE);
     }
 
     fn render_ui(&self, state: &mut State) -> () {

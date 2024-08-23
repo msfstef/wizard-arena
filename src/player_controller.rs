@@ -15,7 +15,7 @@ impl Default for KeyMappings {
             down: KeyCode::S,
             left: KeyCode::D,
             right: KeyCode::A,
-            primary_attack: MouseButton::Right,
+            primary_attack: MouseButton::Left,
         }
     }
 }

@@ -2,8 +2,7 @@ mod models;
 mod player_controller;
 mod scenes;
 use macroquad::prelude::*;
-use models::{Player, SceneType, State};
-use player_controller::KeyMappings;
+use models::{SceneType, State};
 use scenes::*;
 
 fn window_conf() -> Conf {
@@ -16,24 +15,9 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    let mut state = State {
-        scene_type: SceneType::MainMenu,
-        players: vec![
-            Player {
-                size: 1.0,
-                position: Vec2::new(0.1, 0.1),
-                orientation: Default::default(),
-            },
-            Player {
-                size: 1.0,
-                position: Vec2::new(0.9, 0.9),
-                orientation: Default::default(),
-            },
-        ],
-        mappings: KeyMappings::default(),
-    };
+    let mut state = State::default();
     let mut current_scene_type: SceneType = state.scene_type.clone();
-    let mut current_scene: Box<dyn GameScene> = Box::new(scenes::main_menu::MainMenu {});
+    let mut current_scene: Box<dyn GameScene> = Box::new(scenes::fighting::Fighting {});
 
     loop {
         if current_scene_type != state.scene_type {
@@ -45,6 +29,7 @@ async fn main() {
             };
         }
 
+        current_scene.update(&mut state);
         current_scene.handle_input(&mut state);
         current_scene.render(&state);
         current_scene.render_ui(&mut state);
