@@ -36,6 +36,10 @@ impl GameScene for Fighting {
     }
 
     fn handle_input(&self, state: &mut State) -> () {
+        if is_key_pressed(KeyCode::Escape) {
+            state.scene_type = SceneType::MainMenu;
+            return;
+        }
         let player1: &mut Player = state.players.get_mut(1).expect("Missing Player 1");
         if is_key_down(KeyCode::W) {
             player1.position += vec2(0.0, -0.01);
