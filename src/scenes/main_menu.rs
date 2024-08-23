@@ -11,8 +11,11 @@ impl GameScene for MainMenu {
         clear_background(WHITE);
     }
 
-    fn handle_input(&self, _state: &mut State) -> () {
-        // no-op
+    fn handle_input(&self, state: &mut State) -> () {
+        if is_key_pressed(KeyCode::Escape) {
+            state.scene_type = SceneType::Quitting;
+            return;
+        }
     }
 
     fn render_ui(&self, state: &mut State) -> () {

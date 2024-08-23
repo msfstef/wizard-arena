@@ -4,13 +4,16 @@ use macroquad::prelude::*;
 use models::{Player, SceneType, State};
 use scenes::*;
 
-#[macroquad::main("WizardArena")]
+fn window_conf() -> Conf {
+    Conf {
+        window_title: "WizardArena".to_owned(),
+        fullscreen: true,
+        ..Default::default()
+    }
+}
+
+#[macroquad::main(window_conf)]
 async fn main() {
-    let scale_factor = screen_dpi_scale();
-    request_new_screen_size(
-        screen_width() * scale_factor,
-        screen_height() * scale_factor,
-    );
     let mut state = State {
         scene_type: SceneType::MainMenu,
         players: vec![
