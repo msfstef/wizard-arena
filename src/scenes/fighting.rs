@@ -6,24 +6,44 @@ use macroquad::prelude::*;
 
 const BASE_PLAYER_SIZE: f32 = 15.0;
 const BASE_PROJECTILE_SIZE: f32 = 5.0;
+const DT: f32 = 1.0;
 
 pub struct Fighting {}
 
 impl GameScene for Fighting {
     fn update(&self, state: &mut State) -> () {
-        for projectile in state.projectiles.iter_mut() {
-            projectile.position += projectile.veolcity;
+        for player in state.players.iter_mut() {
+            player.game_obj.update_clamped(DT);
         }
 
-        state.projectiles = state
-            .projectiles
-            .clone()
-            .into_iter()
-            .filter(|proj| -> bool {
-                let pos = proj.position;
-                !(pos.x > 1.0 || pos.x < 0.0 || pos.y > 1.0 || pos.y < 0.0)
-            })
-            .collect();
+        let mut new_projectiles: Vec<Projectile> = vec![];
+
+        'outer: for projectile in state.projectiles.iter_mut() {
+            projectile.game_obj.update(DT);
+
+            // TODO:should have smarter check for collisions
+            // if it collides with a player, mark game as ended
+            for player in state.players.iter() {
+                // no friendly fire
+                if projectile.owner_id.is_some_and(|id| id == player.id) {
+                    continue;
+                }
+
+                if player.game_obj.collides_with(&projectile.game_obj) {
+                    state.scene_type = SceneType::MainMenu;
+                    continue 'outer;
+                }
+            }
+
+            // if it is out of bounds, drop it
+            if projectile.game_obj.out_of_bounds() {
+                continue;
+            }
+
+            new_projectiles.push(projectile.clone());
+        }
+
+        state.projectiles = new_projectiles
     }
 
     fn handle_input(&self, state: &mut State) -> () {
@@ -34,11 +54,14 @@ impl GameScene for Fighting {
         let player1: &mut Player = state.players.get_mut(1).expect("Missing Player 1");
 
         let direction = get_movement_direction(&state.mappings);
-        if direction.is_some() {
-            player1.position += direction.unwrap() * 0.01;
-        }
 
-        let orientation = get_orientation(&state.mappings, &player1.position);
+        player1.game_obj.velocity = if direction.is_some() {
+            Some(direction.unwrap() * 0.01)
+        } else {
+            None
+        };
+
+        let orientation = get_orientation(&state.mappings, &player1.game_obj.position);
         if orientation.is_some() {
             player1.orientation = orientation.unwrap()
         }
@@ -64,13 +87,11 @@ impl GameScene for Fighting {
         );
 
         for player in state.players.iter() {
-            let size = BASE_PLAYER_SIZE * player.size;
-
             draw_rectangle_ex(
-                player.position.x * screen_width(),
-                player.position.y * screen_height(),
-                size,
-                size,
+                player.game_obj.position.x * screen_width(),
+                player.game_obj.position.y * screen_height(),
+                player.game_obj.size.x * screen_width(),
+                player.game_obj.size.x * screen_width(),
                 DrawRectangleParams {
                     color: BLACK,
                     rotation: player.orientation.to_angle(),
@@ -80,12 +101,10 @@ impl GameScene for Fighting {
         }
 
         for projectile in state.projectiles.iter() {
-            let size = BASE_PROJECTILE_SIZE;
-
             draw_circle(
-                projectile.position.x * screen_width(),
-                projectile.position.y * screen_height(),
-                size,
+                projectile.game_obj.position.x * screen_width(),
+                projectile.game_obj.position.y * screen_height(),
+                projectile.game_obj.size.x * screen_width(),
                 YELLOW,
             );
         }
