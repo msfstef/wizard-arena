@@ -6,6 +6,11 @@ use scenes::*;
 
 #[macroquad::main("WizardArena")]
 async fn main() {
+    let scale_factor = screen_dpi_scale();
+    request_new_screen_size(
+        screen_width() * scale_factor,
+        screen_height() * scale_factor,
+    );
     let mut state = State {
         scene_type: SceneType::MainMenu,
         players: vec![
