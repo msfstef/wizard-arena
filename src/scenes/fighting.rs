@@ -4,8 +4,6 @@ use crate::scenes::GameScene;
 use macroquad::color::*;
 use macroquad::prelude::*;
 
-const BASE_PLAYER_SIZE: f32 = 15.0;
-const BASE_PROJECTILE_SIZE: f32 = 5.0;
 const DT: f32 = 1.0;
 
 pub struct Fighting {}
@@ -13,10 +11,8 @@ pub struct Fighting {}
 impl GameScene for Fighting {
     fn update(&self, state: &mut State) -> () {
         for player in state.players.iter_mut() {
-            player.game_obj.update_clamped(DT);
+            player.game_obj.update_clamped(DT, &Bounds::screen());
         }
-
-        let mut new_projectiles: Vec<Projectile> = vec![];
 
         'outer: for projectile in state.projectiles.iter_mut() {
             projectile.game_obj.update(DT);
@@ -34,16 +30,11 @@ impl GameScene for Fighting {
                     continue 'outer;
                 }
             }
-
-            // if it is out of bounds, drop it
-            if projectile.game_obj.out_of_bounds() {
-                continue;
-            }
-
-            new_projectiles.push(projectile.clone());
         }
 
-        state.projectiles = new_projectiles
+        state
+            .projectiles
+            .retain(|p| !p.game_obj.out_of_bounds(&Bounds::screen()));
     }
 
     fn handle_input(&self, state: &mut State) -> () {
@@ -56,7 +47,7 @@ impl GameScene for Fighting {
         let direction = get_movement_direction(&state.mappings);
 
         player1.game_obj.velocity = if direction.is_some() {
-            Some(direction.unwrap() * 0.01)
+            Some(direction.unwrap() * 3.0)
         } else {
             None
         };
@@ -67,7 +58,7 @@ impl GameScene for Fighting {
         }
 
         if should_attack_primary(&state.mappings) {
-            state.projectiles.push(player1.fire_projectile(0.01))
+            state.projectiles.push(player1.fire_projectile(5.))
         }
     }
 
@@ -88,10 +79,10 @@ impl GameScene for Fighting {
 
         for player in state.players.iter() {
             draw_rectangle_ex(
-                player.game_obj.position.x * screen_width(),
-                player.game_obj.position.y * screen_height(),
-                player.game_obj.size.x * screen_width(),
-                player.game_obj.size.x * screen_width(),
+                player.game_obj.position.x,
+                player.game_obj.position.y,
+                player.game_obj.size.x,
+                player.game_obj.size.y,
                 DrawRectangleParams {
                     color: BLACK,
                     rotation: player.orientation.to_angle(),
@@ -102,9 +93,9 @@ impl GameScene for Fighting {
 
         for projectile in state.projectiles.iter() {
             draw_circle(
-                projectile.game_obj.position.x * screen_width(),
-                projectile.game_obj.position.y * screen_height(),
-                projectile.game_obj.size.x * screen_width(),
+                projectile.game_obj.position.x,
+                projectile.game_obj.position.y,
+                projectile.game_obj.size.x / 2.,
                 YELLOW,
             );
         }

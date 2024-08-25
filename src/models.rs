@@ -1,11 +1,29 @@
 use crate::player_controller::KeyMappings;
-use macroquad::math::{vec2, Vec2};
+use macroquad::{
+    math::{vec2, Vec2},
+    window::{screen_height, screen_width},
+};
 
 #[derive(PartialEq, Clone)]
 pub enum SceneType {
     Fighting,
     MainMenu,
     Quitting,
+}
+
+#[derive(Default)]
+pub struct Bounds {
+    pub lower: Vec2,
+    pub upper: Vec2,
+}
+
+impl Bounds {
+    pub fn screen() -> Self {
+        Self {
+            lower: vec2(0., 0.),
+            upper: vec2(screen_width(), screen_height()),
+        }
+    }
 }
 
 #[derive(Default, Clone)]
@@ -16,18 +34,18 @@ pub struct GameObject {
 }
 
 impl GameObject {
-    pub fn out_of_bounds(&self) -> bool {
-        self.position.x - self.size.x < 0.0
-            || self.position.x + self.size.x > 1.0
-            || self.position.y - self.size.y < 0.0
-            || self.position.y + self.size.y > 1.0
+    pub fn out_of_bounds(&self, bounds: &Bounds) -> bool {
+        self.position.x - self.size.x / 2. < bounds.lower.x
+            || self.position.x + self.size.x / 2. > bounds.upper.x
+            || self.position.y - self.size.y / 2. < bounds.lower.y
+            || self.position.y + self.size.y / 2. > bounds.upper.y
     }
 
     pub fn collides_with(&self, other: &Self) -> bool {
-        self.position.x - self.size.x < other.position.x + other.size.x
-            && self.position.x + self.size.x > other.position.x - other.size.x
-            && self.position.y - self.size.y < other.position.y + other.size.y
-            && self.position.y + self.size.y > other.position.y - other.size.y
+        self.position.x - self.size.x / 2. < other.position.x + other.size.x / 2.
+            && self.position.x + self.size.x / 2. > other.position.x - other.size.x / 2.
+            && self.position.y - self.size.y / 2. < other.position.y + other.size.y / 2.
+            && self.position.y + self.size.y / 2. > other.position.y - other.size.y / 2.
     }
 
     pub fn update(&mut self, dt: f32) -> () {
@@ -36,12 +54,12 @@ impl GameObject {
         }
     }
 
-    pub fn update_clamped(&mut self, dt: f32) -> () {
+    pub fn update_clamped(&mut self, dt: f32, bounds: &Bounds) -> () {
         self.update(dt);
-        if self.out_of_bounds() {
+        if self.out_of_bounds(bounds) {
             self.position = self
                 .position
-                .clamp(vec2(0., 0.) + self.size, vec2(1., 1.) - self.size);
+                .clamp(bounds.lower + self.size / 2., bounds.upper - self.size / 2.);
         }
     }
 }
@@ -62,7 +80,7 @@ impl Player {
             game_obj: GameObject {
                 position: self.game_obj.position.clone(),
                 velocity: Some(self.orientation.clone() * velocity),
-                size: vec2(0.05, 0.05),
+                size: vec2(4., 4.),
             },
             owner_id: Some(self.id.clone()),
         }
@@ -97,8 +115,8 @@ impl Default for State {
                 Player {
                     id: 1,
                     game_obj: GameObject {
-                        position: Vec2::new(0.1, 0.1),
-                        size: vec2(0.1, 0.1),
+                        position: Bounds::screen().upper * 0.1,
+                        size: vec2(10., 10.),
                         ..Default::default()
                     },
                     orientation: Default::default(),
@@ -106,8 +124,8 @@ impl Default for State {
                 Player {
                     id: 2,
                     game_obj: GameObject {
-                        position: Vec2::new(0.9, 0.9),
-                        size: vec2(0.1, 0.1),
+                        position: Bounds::screen().upper * 0.9,
+                        size: vec2(10., 10.),
                         ..Default::default()
                     },
                     orientation: Default::default(),

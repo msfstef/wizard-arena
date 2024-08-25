@@ -8,7 +8,8 @@ use scenes::*;
 fn window_conf() -> Conf {
     Conf {
         window_title: "WizardArena".to_owned(),
-        fullscreen: true,
+        window_width: 1920,
+        window_height: 1080,
         ..Default::default()
     }
 }

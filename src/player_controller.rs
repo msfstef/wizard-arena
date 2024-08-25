@@ -34,8 +34,8 @@ pub fn get_movement_direction(mappings: &KeyMappings) -> Option<Vec2> {
 }
 
 pub fn get_orientation(_mappings: &KeyMappings, src_pos: &Vec2) -> Option<Vec2> {
-    let mouse_pos = mouse_position_local() / 2. + 0.5;
-    (mouse_pos - src_pos.to_owned()).try_normalize()
+    let (mouse_x, mouse_y) = mouse_position();
+    (vec2(mouse_x, mouse_y) - src_pos.to_owned()).try_normalize()
 }
 
 pub fn should_attack_primary(mappings: &KeyMappings) -> bool {
