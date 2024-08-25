@@ -60,6 +60,7 @@ impl GameObject {
             self.position = self
                 .position
                 .clamp(bounds.lower + self.size / 2., bounds.upper - self.size / 2.);
+            self.velocity = None;
         }
     }
 }

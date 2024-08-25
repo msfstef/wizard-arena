@@ -19,14 +19,20 @@ impl GameScene for Fighting {
 
             // TODO:should have smarter check for collisions
             // if it collides with a player, mark game as ended
-            for player in state.players.iter() {
+            for player in state.players.iter_mut() {
                 // no friendly fire
                 if projectile.owner_id.is_some_and(|id| id == player.id) {
                     continue;
                 }
 
-                if player.game_obj.collides_with(&projectile.game_obj) {
-                    state.scene_type = SceneType::MainMenu;
+                if projectile.game_obj.collides_with(&player.game_obj) {
+                    player.game_obj.velocity = Some(
+                        player.game_obj.velocity.unwrap_or(vec2(0., 0.))
+                            + projectile
+                                .game_obj
+                                .velocity
+                                .expect("projectile should have velocity"),
+                    );
                     continue 'outer;
                 }
             }
@@ -42,23 +48,31 @@ impl GameScene for Fighting {
             state.scene_type = SceneType::MainMenu;
             return;
         }
-        let player1: &mut Player = state.players.get_mut(1).expect("Missing Player 1");
 
+        let player_to_pick: usize = if is_key_down(KeyCode::LeftControl) {
+            1
+        } else {
+            0
+        };
+        let player: &mut Player = state
+            .players
+            .get_mut(player_to_pick)
+            .expect("should have 2 players available");
         let direction = get_movement_direction(&state.mappings);
 
-        player1.game_obj.velocity = if direction.is_some() {
+        player.game_obj.velocity = if direction.is_some() {
             Some(direction.unwrap() * 3.0)
         } else {
             None
         };
 
-        let orientation = get_orientation(&state.mappings, &player1.game_obj.position);
+        let orientation = get_orientation(&state.mappings, &player.game_obj.position);
         if orientation.is_some() {
-            player1.orientation = orientation.unwrap()
+            player.orientation = orientation.unwrap()
         }
 
         if should_attack_primary(&state.mappings) {
-            state.projectiles.push(player1.fire_projectile(5.))
+            state.projectiles.push(player.fire_projectile(5.))
         }
     }
 
